@@ -88,13 +88,15 @@ class Game:
 
         curr_snake_x, curr_snake_y = snake.x, snake.y
 
-        snake_length = 3
+        snake_length = 20
         
         ### Initial direction step
         x_change, y_change = 0, 0
         
         self.snake_body = [(curr_snake_x, curr_snake_y + i) \
                             for i in range(0, snake.snake_block * snake_length, snake.snake_block)]
+        
+        print(self.snake_body)
 
         ### Holding the game window
         while not self.game_over:
@@ -111,22 +113,22 @@ class Game:
                         self.game_over = True
 
                     ### Up
-                    if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if (event.key == pygame.K_UP or event.key == pygame.K_w) and y_change <= 0:
                         y_change = -snake.snake_block
                         x_change = 0
 
                     ### Down
-                    elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and y_change >= 0:
                         y_change = snake.snake_block
                         x_change = 0
 
                     ### Right
-                    elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    elif (event.key == pygame.K_RIGHT or event.key == pygame.K_d) and x_change >= 0:
                         y_change = 0
                         x_change = snake.snake_block
                     
                     ### Left
-                    elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    elif (event.key == pygame.K_LEFT or event.key == pygame.K_a) and x_change <= 0:
                         y_change = 0
                         x_change = -snake.snake_block
 
@@ -134,11 +136,12 @@ class Game:
             curr_snake_x += x_change
             curr_snake_y += y_change
 
-            self.snake_body.pop()
-            self.snake_body.insert(0, (curr_snake_x, curr_snake_y))
-
             ### Draw background & snake & food
             self.screen.fill(Color.blue)
+
+            if x_change != 0 or y_change != 0:
+                self.snake_body.pop()
+                self.snake_body.insert(0, (curr_snake_x, curr_snake_y))
 
             if curr_snake_x == food_x and curr_snake_y == food_y:
                 self.score += 1
@@ -147,7 +150,6 @@ class Game:
                 new_x, new_y = self.snake_body[-1]
                 self.snake_body.append((new_x + x_change, new_y + y_change))
                 snake.draw_snake(self.snake_body)
-
                 food_x, food_y = food.init_food()
                 food.draw_food(food_x, food_y)
 
@@ -155,6 +157,13 @@ class Game:
                 self.score_text()
                 snake.draw_snake(self.snake_body)
                 food.draw_food(food_x, food_y)
+
+            if self.snake_body[0] in self.snake_body[1:]:
+                self.game_over = True
+
+            if curr_snake_x < 0 or curr_snake_x >= self.screen_width or\
+                curr_snake_y < 0 or curr_snake_y >= self.screen_height:
+                self.game_over = True
 
             ### Update all
             pygame.display.update()
