@@ -52,7 +52,7 @@ class Food:
 class Game:
     def __init__(self):
 
-        ### Initialize anything
+        ### Initialize
         pygame.init()
 
         ### Game window setup
