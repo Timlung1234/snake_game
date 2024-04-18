@@ -51,6 +51,7 @@ class Snake_game:
         self.snake_length = 3
         self.food = None
 
+        self.walk_step = 0
         self.game_over = False
 
         self.x_change = 0
@@ -102,6 +103,7 @@ class Snake_game:
         if self.snake[0] in self.snake[1:]:
             return True
         
+        ### Crash the wall
         if head_x < 0 or head_x >= self.screen_width or\
             head_y < 0 or head_y >= self.screen_height:
             return True
@@ -126,23 +128,22 @@ class Snake_game:
                     quit()
 
                 ### Up
-                if (event.key == pygame.K_UP or event.key == pygame.K_w) and self.y_change <= 0:
+                if action == [1, 0, 0, 0]:
                     self.y_change = -self.object_size
                     self.x_change = 0
 
                 ### Down
-                elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and self.y_change >= 0:
+                elif action == [0, 1, 0, 0]:
                     self.y_change = self.object_size
                     self.x_change = 0
 
                 ### Right
-                elif (event.key == pygame.K_RIGHT or event.key == pygame.K_d) or action == [1, 0, 0] \
-                    and self.x_change >= 0:
+                elif action == [0, 0, 1, 0]:
                     self.y_change = 0
                     self.x_change = self.object_size
                 
                 ### Left
-                elif (event.key == pygame.K_LEFT or event.key == pygame.K_a) and self.x_change <= 0:
+                elif action == [0, 0, 0, 1]:
                     self.y_change = 0
                     self.x_change = -self.object_size
 
@@ -155,12 +156,17 @@ class Snake_game:
         if self.x_change != 0 or self.y_change != 0:
             self.snake.pop()
             self.snake.insert(0, (new_x, new_y))
+            self.walk_step += 1
+            print('step: ', self.walk_step)
         
         if (new_x, new_y) == self.food:
             self.reward += 10
             self.score += 1
 
+            self.walk_step = 0
+
             self.food = self.generate_food()
+
             self.snake_length += 1
 
             tail_x, tail_y = self.snake[-1]
@@ -168,7 +174,7 @@ class Snake_game:
             self.snake.append((tail_x + self.x_change * -1,
                                tail_y + self.y_change * -1))
         
-        if self.crash():
+        if self.crash() or self.walk_step > 200:
             self.game_over = True
             self.reward -= 10
             return self.reward, self.game_over, self.score
