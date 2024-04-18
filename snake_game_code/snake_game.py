@@ -13,59 +13,166 @@ class Color:
     blue = (50, 153, 213)
 
 class Snake_game:
-
-    def __init__(self, width=720, height=480):
+    def __init__(self):
         ### Initialize
         pygame.init()
 
         ### Game window setup
-        self.screen_width = width
-        self.screen_height = height
+        self.screen_width = 800
+        self.screen_height = 800
         self.screen = pygame.display.set_mode((self.screen_width,
                                                self.screen_height))
 
-        ### Font style
-        self.score_font = pygame.font.SysFont("comicsansms", 35)
+        ### Title of window
+        pygame.display.set_caption('Game')
         
+        ### Font style
+        self.scorefont = pygame.font.SysFont("comicsansms", 35)
+
         ### Game status & setting
         self.snake_speed = 10
         self.object_size = 20
 
-        ### Init / Reset all game element
         self.reset()
+
+        self.clock = pygame.time.Clock()
+
+    def generate_food(self) -> tuple:
+        food_xy = self.generate_xy()
+
+        if food_xy in self.snake:
+            food_xy = self.generate_xy()
+        
+        return food_xy
+
+    def reset(self) -> None:
+        ### Reset all setting
+        self.score = 0
+        self.snake_length = 3
+        self.food = None
+
+        self.game_over = False
+
+        self.x_change = 0
+        self.y_change = 0
+
+        ### Generate snake xy
+        self.snake_head = self.generate_xy()
+        self.snake = [(self.snake_head[0], self.snake_head[1] + i) \
+                      for i in range(0, self.object_size * self.snake_length, self.object_size)]
+        
+        self.food = self.generate_food()
+
+        print(self.snake)
+        print(self.food)
+        print()
 
     def generate_xy(self) -> tuple:
         x = round(random.randint(0, self.screen_width) / self.object_size) * self.object_size
-        y = round(random.randint(0, self.screen_width) / self.object_size) * self.object_size
+        y = round(random.randint(0, self.screen_height) / self.object_size) * self.object_size
 
         return (x, y)
 
-    def reset(self) -> None:
-        self.body = 3
-        self.score = 0
-        self.game_over = False
+    def refresh_gui(self) -> None:
+        ### Draw background
+        self.screen.fill(Color.blue)
 
-        self.draw_food()
-
-        self.snake = [self.generate_xy() for i in range(self.body)]
-        self.draw_snake()
-        self.score_text()
-
-    def draw_food(self) -> None:
-        self.food = self.generate_xy()
-
-        ### Avoid food in snake
-        if self.food in self.snake:
-            self.food = self.generate_xy()
-
-    def draw_snake(self):
+        ### Draw snake
         for part in self.snake:
             pygame.draw.rect(self.screen, Color.yellow, [part[0], part[1],
                                                          self.object_size, self.object_size])
-
-    def score_text(self):
-        message = self.score_font.render(f'Score: {self.score}', True, Color.black)
+        
+        ### Draw food
+        pygame.draw.rect(self.screen, Color.red, [self.food[0], self.food[1],
+                                                  self.object_size, self.object_size])
+        
+        message = self.scorefont.render(f'Score: {self.score}', True, Color.black)
         self.screen.blit(message, [5, 5])
 
-    def play_game(self):
-        pass
+        ### Update
+        pygame.display.update()
+
+        ### Control while loop speed
+        self.clock.tick(self.snake_speed)
+
+    def crash(self):
+        head_x, head_y = self.snake[0]
+
+        ### Crash itself
+        if self.snake[0] in self.snake[1:]:
+            return True
+        
+        if head_x < 0 or head_x >= self.screen_width or\
+            head_y < 0 or head_y >= self.screen_height:
+            return True
+
+        return False
+
+    def play_game(self, action=None):
+        ### Get info from pygame interface
+        for event in pygame.event.get():
+
+            ### Close window
+            if event.type == pygame.QUIT:
+                self.game_over = True
+                pygame.quit()
+                quit()
+
+            ### Press 'ESC' to close
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.game_over = True
+                    pygame.quit()
+                    quit()
+
+                ### Up
+                if (event.key == pygame.K_UP or event.key == pygame.K_w) and self.y_change <= 0:
+                    self.y_change = -self.object_size
+                    self.x_change = 0
+
+                ### Down
+                elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and self.y_change >= 0:
+                    self.y_change = self.object_size
+                    self.x_change = 0
+
+                ### Right
+                elif (event.key == pygame.K_RIGHT or event.key == pygame.K_d) or action == [1, 0, 0] \
+                    and self.x_change >= 0:
+                    self.y_change = 0
+                    self.x_change = self.object_size
+                
+                ### Left
+                elif (event.key == pygame.K_LEFT or event.key == pygame.K_a) and self.x_change <= 0:
+                    self.y_change = 0
+                    self.x_change = -self.object_size
+
+        ### Get snake next location
+        new_x = self.snake[0][0] + self.x_change
+        new_y = self.snake[0][1] + self.y_change
+
+        self.reward = 0
+
+        if self.x_change != 0 or self.y_change != 0:
+            self.snake.pop()
+            self.snake.insert(0, (new_x, new_y))
+        
+        if (new_x, new_y) == self.food:
+            self.reward += 10
+            self.score += 1
+
+            self.food = self.generate_food()
+            self.snake_length += 1
+
+            tail_x, tail_y = self.snake[-1]
+
+            self.snake.append((tail_x + self.x_change * -1,
+                               tail_y + self.y_change * -1))
+        
+        if self.crash():
+            self.game_over = True
+            self.reward -= 10
+            return self.reward, self.game_over, self.score
+
+        self.refresh_gui()
+
+        return self.reward, self.game_over, self.score
