@@ -48,7 +48,7 @@ class Snake_game:
     def reset(self) -> None:
         ### Reset all setting
         self.score = 0
-        self.snake_length = 3
+        self.snake_length = 20
         self.food = None
 
         self.walk_step = 0
@@ -63,10 +63,6 @@ class Snake_game:
                       for i in range(0, self.object_size * self.snake_length, self.object_size)]
         
         self.food = self.generate_food()
-
-        print(self.snake)
-        print(self.food)
-        print()
 
     def generate_xy(self) -> tuple:
         x = round(random.randint(0, self.screen_width) / self.object_size) * self.object_size
@@ -96,19 +92,21 @@ class Snake_game:
         ### Control while loop speed
         self.clock.tick(self.snake_speed)
 
-    def crash(self):
-        head_x, head_y = self.snake[0]
+    def crash(self, direction=None):
+        if direction is None:
+            direction = self.snake[0]
 
         ### Crash itself
-        if self.snake[0] in self.snake[1:]:
+        if direction in self.snake[1:]:
             return True
         
         ### Crash the wall
-        if head_x < 0 or head_x >= self.screen_width or\
-            head_y < 0 or head_y >= self.screen_height:
+        if direction[0] < 0 or direction[0] >= self.screen_width or\
+            direction[1] < 0 or direction[1] >= self.screen_height:
             return True
 
         return False
+
 
     def play_game(self, action=None):
         ### Get info from pygame interface
@@ -128,22 +126,26 @@ class Snake_game:
                     quit()
 
                 ### Up
-                if action == [1, 0, 0, 0]:
+                if action == [1, 0, 0, 0] or \
+                    event.key == pygame.K_UP:
                     self.y_change = -self.object_size
                     self.x_change = 0
 
                 ### Down
-                elif action == [0, 1, 0, 0]:
+                elif action == [0, 1, 0, 0] or \
+                    event.key == pygame.K_DOWN:
                     self.y_change = self.object_size
                     self.x_change = 0
 
                 ### Right
-                elif action == [0, 0, 1, 0]:
+                elif action == [0, 0, 1, 0] or \
+                    event.key == pygame.K_RIGHT:
                     self.y_change = 0
                     self.x_change = self.object_size
                 
                 ### Left
-                elif action == [0, 0, 0, 1]:
+                elif action == [0, 0, 0, 1] or \
+                    event.key == pygame.K_LEFT:
                     self.y_change = 0
                     self.x_change = -self.object_size
 
@@ -157,7 +159,7 @@ class Snake_game:
             self.snake.pop()
             self.snake.insert(0, (new_x, new_y))
             self.walk_step += 1
-            print('step: ', self.walk_step)
+            #print('step: ', self.walk_step)
         
         if (new_x, new_y) == self.food:
             self.reward += 10
@@ -182,3 +184,7 @@ class Snake_game:
         self.refresh_gui()
 
         return self.reward, self.game_over, self.score
+
+#if __name__ == '__main__':
+#    game = Snake_game()
+#    game.play_game()
