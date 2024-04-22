@@ -30,7 +30,7 @@ class Snake_game:
         self.scorefont = pygame.font.SysFont("comicsansms", 35)
 
         ### Game status & setting
-        self.snake_speed = 10
+        self.snake_speed = 100
         self.object_size = 20
 
         self.reset()
@@ -48,7 +48,7 @@ class Snake_game:
     def reset(self) -> None:
         ### Reset all setting
         self.score = 0
-        self.snake_length = 20
+        self.snake_length = 3
         self.food = None
 
         self.walk_step = 0
@@ -118,36 +118,32 @@ class Snake_game:
                 pygame.quit()
                 quit()
 
-            ### Press 'ESC' to close
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game_over = True
-                    pygame.quit()
-                    quit()
+            # ### Press 'ESC' to close
+            # elif event.type == pygame.KEYDOWN:
+            #     if event.key == pygame.K_ESCAPE:
+            #         self.game_over = True
+            #         pygame.quit()
+            #         quit()
 
-                ### Up
-                if action == [1, 0, 0, 0] or \
-                    event.key == pygame.K_UP:
-                    self.y_change = -self.object_size
-                    self.x_change = 0
+        ### Up
+        if action == [1, 0, 0, 0]:#or event.key == pygame.K_UP:
+            self.y_change = -self.object_size
+            self.x_change = 0
 
-                ### Down
-                elif action == [0, 1, 0, 0] or \
-                    event.key == pygame.K_DOWN:
-                    self.y_change = self.object_size
-                    self.x_change = 0
+        ### Down
+        elif action == [0, 1, 0, 0]:#or event.key == pygame.K_DOWN:
+            self.y_change = self.object_size
+            self.x_change = 0
 
-                ### Right
-                elif action == [0, 0, 1, 0] or \
-                    event.key == pygame.K_RIGHT:
-                    self.y_change = 0
-                    self.x_change = self.object_size
-                
-                ### Left
-                elif action == [0, 0, 0, 1] or \
-                    event.key == pygame.K_LEFT:
-                    self.y_change = 0
-                    self.x_change = -self.object_size
+        ### Right
+        elif action == [0, 0, 1, 0]:#or event.key == pygame.K_RIGHT:
+            self.y_change = 0
+            self.x_change = self.object_size
+        
+        ### Left
+        elif action == [0, 0, 0, 1]:#or event.key == pygame.K_LEFT:
+            self.y_change = 0
+            self.x_change = -self.object_size
 
         ### Get snake next location
         new_x = self.snake[0][0] + self.x_change
@@ -159,7 +155,6 @@ class Snake_game:
             self.snake.pop()
             self.snake.insert(0, (new_x, new_y))
             self.walk_step += 1
-            #print('step: ', self.walk_step)
         
         if (new_x, new_y) == self.food:
             self.reward += 10
