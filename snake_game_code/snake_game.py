@@ -18,8 +18,8 @@ class Snake_game:
         pygame.init()
 
         ### Game window setup
-        self.screen_width = 800
-        self.screen_height = 800
+        self.screen_width = 480
+        self.screen_height = 480
         self.screen = pygame.display.set_mode((self.screen_width,
                                                self.screen_height))
 
@@ -40,7 +40,7 @@ class Snake_game:
     def generate_food(self) -> tuple:
         food_xy = self.generate_xy()
 
-        if food_xy in self.snake:
+        while food_xy in self.snake:
             food_xy = self.generate_xy()
         
         return food_xy
@@ -64,9 +64,12 @@ class Snake_game:
         
         self.food = self.generate_food()
 
+        self.pre_snake = None
+        self.new_snake = None
+
     def generate_xy(self) -> tuple:
-        x = round(random.randint(0, self.screen_width) / self.object_size) * self.object_size
-        y = round(random.randint(0, self.screen_height) / self.object_size) * self.object_size
+        x = round(random.randint(0, self.screen_width - self.object_size) / self.object_size) * self.object_size
+        y = round(random.randint(0, self.screen_height - self.object_size) / self.object_size) * self.object_size
 
         return (x, y)
 
@@ -85,6 +88,8 @@ class Snake_game:
         
         message = self.scorefont.render(f'Score: {self.score}', True, Color.black)
         self.screen.blit(message, [5, 5])
+
+        # self.crash_path()
 
         ### Update
         pygame.display.update()
@@ -106,7 +111,15 @@ class Snake_game:
             return True
 
         return False
+    
+    def crash_path(self):
+        head = self.snake[0]
 
+        pygame.draw.line(self.screen, Color.green, head, (head[0], 0))
+        pygame.draw.line(self.screen, Color.green, head, (0, head[1]))
+        pygame.draw.line(self.screen, Color.green, head, (self.screen_width, head[1]))
+        pygame.display.flip()
+        pass
 
     def play_game(self, action=None):
         ### Get info from pygame interface
@@ -126,28 +139,32 @@ class Snake_game:
             #         quit()
 
         ### Up
-        if action == [1, 0, 0, 0]:#or event.key == pygame.K_UP:
+        if action == [1, 0, 0, 0]:#and self.y_change <= 0: or event.key == pygame.K_UP:
             self.y_change = -self.object_size
             self.x_change = 0
 
         ### Down
-        elif action == [0, 1, 0, 0]:#or event.key == pygame.K_DOWN:
+        elif action == [0, 1, 0, 0]:#and self.y_change >= 0: or event.key == pygame.K_DOWN:
             self.y_change = self.object_size
             self.x_change = 0
 
         ### Right
-        elif action == [0, 0, 1, 0]:#or event.key == pygame.K_RIGHT:
+        elif action == [0, 0, 1, 0]:#and self.x_change >= 0: or event.key == pygame.K_RIGHT:
             self.y_change = 0
             self.x_change = self.object_size
         
         ### Left
-        elif action == [0, 0, 0, 1]:#or event.key == pygame.K_LEFT:
+        elif action == [0, 0, 0, 1]:#and self.x_change <= 0: or event.key == pygame.K_LEFT:
             self.y_change = 0
             self.x_change = -self.object_size
+
+        self.pre_snake = self.snake[0]
 
         ### Get snake next location
         new_x = self.snake[0][0] + self.x_change
         new_y = self.snake[0][1] + self.y_change
+
+        self.new_snake = new_x, new_y
 
         self.reward = 0
 
@@ -162,20 +179,28 @@ class Snake_game:
 
             self.walk_step = 0
 
-            self.food = self.generate_food()
-
             self.snake_length += 1
 
             tail_x, tail_y = self.snake[-1]
 
             self.snake.append((tail_x + self.x_change * -1,
                                tail_y + self.y_change * -1))
+            
+            self.food = self.generate_food()
+
+        pre_dist = ((self.pre_snake[0] - self.food[0])**2 + (self.pre_snake[1] - self.food[1])**2)**(1/2)
+        new_dist = ((self.new_snake[0] - self.food[0])**2 + (self.new_snake[1] - self.food[1])**2)**(1/2)
+
+        if new_dist < pre_dist:
+            self.reward += 1
+        else:
+            self.reward -= 1
         
         if self.crash() or self.walk_step > 200:
             self.game_over = True
-            self.reward -= 10
+            self.reward -= 20
             return self.reward, self.game_over, self.score
-
+        
         self.refresh_gui()
 
         return self.reward, self.game_over, self.score
