@@ -16,7 +16,7 @@ class Agent:
         self.epsilon = 0 ### control the randomness
         self.gamma = 0
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(12, 256, 4)
+        self.model = Linear_QNet(11, 256, 4)
         self.trainer = QTrainer(self.model, lr=LR, gamma = self.gamma)
 
     def get_state(self, game):
@@ -40,14 +40,14 @@ class Agent:
             (go_right and game.crash(to_right)) or
             (go_left and game.crash(to_left)),
 
-            (go_up and game.crash(to_right)) or 
-            (go_down and game.crash(to_left)) or 
-            (go_left and game.crash(to_up)) or 
+            (go_up and game.crash(to_right)) or
+            (go_down and game.crash(to_left)) or
+            (go_left and game.crash(to_up)) or
             (go_right and game.crash(to_down)),
 
-            (go_down and game.crash(to_right)) or 
-            (go_up and game.crash(to_left)) or 
-            (go_right and game.crash(to_up)) or 
+            (go_up and game.crash(to_left)) or
+            (go_down and game.crash(to_right)) or
+            (go_right and game.crash(to_up)) or
             (go_left and game.crash(to_down)),
 
             go_up,
@@ -58,10 +58,8 @@ class Agent:
             game.food[0] < head[0],  # food left
             game.food[0] > head[0],  # food right
             game.food[1] < head[1],  # food up
-            game.food[1] > head[1],  # food down
+            game.food[1] > head[1]  # food down
 
-            game.snake
-            
             # (head[0] - game.food[0]) / game.object_size,
             # (head[1] - game.food[1]) / game.object_size
         ]

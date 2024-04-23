@@ -89,7 +89,7 @@ class Snake_game:
         message = self.scorefont.render(f'Score: {self.score}', True, Color.black)
         self.screen.blit(message, [5, 5])
 
-        # self.crash_path()
+        self.crash_path()
 
         ### Update
         pygame.display.update()
@@ -111,14 +111,14 @@ class Snake_game:
             return True
 
         return False
-    
+
     def crash_path(self):
         head = self.snake[0]
 
-        pygame.draw.line(self.screen, Color.green, head, (head[0], 0))
-        pygame.draw.line(self.screen, Color.green, head, (0, head[1]))
-        pygame.draw.line(self.screen, Color.green, head, (self.screen_width, head[1]))
-        pygame.display.flip()
+        #pygame.draw.line(self.screen, Color.green, head, (head[0], 0))
+        #pygame.draw.line(self.screen, Color.green, head, (0, head[1]))
+        #pygame.draw.line(self.screen, Color.green, head, (self.screen_width, head[1]))
+        #pygame.display.flip()
         pass
 
     def play_game(self, action=None):
@@ -139,22 +139,22 @@ class Snake_game:
             #         quit()
 
         ### Up
-        if action == [1, 0, 0, 0]:#and self.y_change <= 0: or event.key == pygame.K_UP:
+        if action == [1, 0, 0, 0] and self.y_change <= 0:#and self.y_change <= 0: or event.key == pygame.K_UP:
             self.y_change = -self.object_size
             self.x_change = 0
 
         ### Down
-        elif action == [0, 1, 0, 0]:#and self.y_change >= 0: or event.key == pygame.K_DOWN:
+        elif action == [0, 1, 0, 0] and self.y_change >= 0:#and self.y_change >= 0: or event.key == pygame.K_DOWN:
             self.y_change = self.object_size
             self.x_change = 0
 
         ### Right
-        elif action == [0, 0, 1, 0]:#and self.x_change >= 0: or event.key == pygame.K_RIGHT:
+        elif action == [0, 0, 1, 0] and self.x_change >= 0:#and self.x_change >= 0: or event.key == pygame.K_RIGHT:
             self.y_change = 0
             self.x_change = self.object_size
         
         ### Left
-        elif action == [0, 0, 0, 1]:#and self.x_change <= 0: or event.key == pygame.K_LEFT:
+        elif action == [0, 0, 0, 1] and self.x_change <= 0:#and self.x_change <= 0: or event.key == pygame.K_LEFT:
             self.y_change = 0
             self.x_change = -self.object_size
 
