@@ -246,16 +246,16 @@ class Snake_game:
         new_dist = ((self.new_snake[0] - self.food[0])**2 + (self.new_snake[1] - self.food[1])**2)**(1/2)
 
         if new_dist < pre_dist:
-            self.reward += 1
+            self.reward += (1 / len(self.snake))
         else:
-            self.reward -= 1
+            self.reward -= (1 / len(self.snake))
         
         if self.crash() or self.walk_step > (100 + len(self.snake) * 5.5):
             self.game_over = True
             self.reward -= 20
             return self.reward, self.game_over, self.score
         elif self.crash() == False:
-            self.reward += 1 + len(self.snake) * 0.3
+            self.reward += 1 + len(self.snake) * 2.2
         
         return self.reward, self.game_over, self.score
 
