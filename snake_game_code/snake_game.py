@@ -18,8 +18,8 @@ class Snake_game:
         pygame.init()
 
         ### Game window setup
-        self.screen_width = 480
-        self.screen_height = 480
+        self.screen_width = 400
+        self.screen_height = 400
         self.screen = pygame.display.set_mode((self.screen_width,
                                                self.screen_height))
 
@@ -30,7 +30,7 @@ class Snake_game:
         self.scorefont = pygame.font.SysFont("comicsansms", 35)
 
         ### Game status & setting
-        self.snake_speed = 100
+        self.snake_speed = 50
         self.object_size = 20
 
         self.reset()
@@ -78,7 +78,9 @@ class Snake_game:
         self.screen.fill(Color.blue)
 
         ### Draw snake
-        for part in self.snake:
+        pygame.draw.rect(self.screen, Color.green, [self.snake[0][0], self.snake[0][1],
+                                                    self.object_size, self.object_size])
+        for part in self.snake[1:]:
             pygame.draw.rect(self.screen, Color.yellow, [part[0], part[1],
                                                          self.object_size, self.object_size])
         
@@ -121,6 +123,49 @@ class Snake_game:
         #pygame.display.flip()
         pass
 
+    def body_check(self, action):
+        x, y = self.snake[0]
+
+        if action == 'up':
+            direction = [1, 0, 0, 0]
+        elif action == 'down':
+            direction = [0, 1, 0, 0]
+        elif action == 'right':
+            direction = [0, 0, 1, 0]
+        elif action == 'left':
+            direction = [0, 0, 0, 1]
+
+        ### Up
+        if direction == [1, 0, 0, 0]:
+            dis = y
+            while dis > 0:
+                dis -= self.object_size
+                if (x, dis) in self.snake[1:]:
+                    return True
+        ### Down
+        elif direction == [0, 1, 0, 0]:
+            dis = y
+            while dis < self.screen_height:
+                dis += self.object_size
+                if (x, dis) in self.snake[1:]:
+                    return True
+        ### Right
+        elif direction == [0, 0, 1, 0]:
+            dis = x
+            while dis < self.screen_width:
+                dis += self.object_size
+                if (dis, y) in self.snake[1:]:
+                    return True
+        ### Left
+        elif direction == [0, 0, 0, 1]:
+            dis = x
+            while dis > 0:
+                dis -= self.object_size
+                if (dis, y) in self.snake[1:]:
+                    return True
+        
+        return False
+
     def play_game(self, action=None):
         ### Get info from pygame interface
         for event in pygame.event.get():
@@ -158,23 +203,29 @@ class Snake_game:
             self.y_change = 0
             self.x_change = -self.object_size
 
+        ### Previous snake head coordinate
         self.pre_snake = self.snake[0]
 
         ### Get snake next location
         new_x = self.snake[0][0] + self.x_change
         new_y = self.snake[0][1] + self.y_change
 
+        ### Updated snake head coordinate
         self.new_snake = new_x, new_y
 
         self.reward = 0
 
+        ### Update snake coordinate list
         if self.x_change != 0 or self.y_change != 0:
             self.snake.pop()
             self.snake.insert(0, (new_x, new_y))
             self.walk_step += 1
         
+        ### When Updated snake head eat the food
         if (new_x, new_y) == self.food:
-            self.reward += 10
+            ### Increase the reward by the length of snake
+            self.reward += 10 + (len(self.snake)*0.5)
+
             self.score += 1
 
             self.walk_step = 0
@@ -188,6 +239,9 @@ class Snake_game:
             
             self.food = self.generate_food()
 
+        ### Update the whole window
+        self.refresh_gui()
+
         pre_dist = ((self.pre_snake[0] - self.food[0])**2 + (self.pre_snake[1] - self.food[1])**2)**(1/2)
         new_dist = ((self.new_snake[0] - self.food[0])**2 + (self.new_snake[1] - self.food[1])**2)**(1/2)
 
@@ -196,13 +250,13 @@ class Snake_game:
         else:
             self.reward -= 1
         
-        if self.crash() or self.walk_step > 200:
+        if self.crash() or self.walk_step > (100 + len(self.snake) * 5.5):
             self.game_over = True
             self.reward -= 20
             return self.reward, self.game_over, self.score
+        elif self.crash() == False:
+            self.reward += 1 + len(self.snake) * 0.3
         
-        self.refresh_gui()
-
         return self.reward, self.game_over, self.score
 
 #if __name__ == '__main__':

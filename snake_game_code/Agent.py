@@ -6,7 +6,7 @@ from collections import deque
 from snake_game import Snake_game
 from model import QTrainer, Linear_QNet
 
-MAX_MEMORY = 100_000
+MAX_MEMORY = 500_000
 BATCH_SIZE = 1000
 LR = 0.001
 
@@ -16,7 +16,7 @@ class Agent:
         self.epsilon = 0 ### control the randomness
         self.gamma = 0
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(11, 256, 4)
+        self.model = Linear_QNet(15, 256, 4)
         self.trainer = QTrainer(self.model, lr=LR, gamma = self.gamma)
 
     def get_state(self, game):
@@ -54,6 +54,22 @@ class Agent:
             go_down,
             go_right,
             go_left,
+
+            go_up and game.body_check('up') or
+            go_up and game.body_check('left') or
+            go_up and game.body_check('right'),
+
+            go_down and game.body_check('down') or
+            go_down and game.body_check('left') or
+            go_down and game.body_check('right'),
+
+            go_right and game.body_check('up') or
+            go_right and game.body_check('down') or
+            go_right and game.body_check('right'),
+
+            go_left and game.body_check('up') or
+            go_left and game.body_check('left') or
+            go_left and game.body_check('down'),
 
             game.food[0] < head[0],  # food left
             game.food[0] > head[0],  # food right
@@ -132,7 +148,7 @@ def train():
 
             total_score += score
             mean_score = total_score / agent.n_game
-            print(f"Game: {agent.n_game}\nScore: {score}\nRecord: {record}\nMean Score: {mean_score}")
+            print(f"Game: {agent.n_game}\nScore: {score}\nRecord: {record}\nMean Score: {mean_score}\n")
 
 if __name__ == "__main__":
     train()
